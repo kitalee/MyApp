@@ -1,0 +1,251 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="tradeModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2012" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityContainer Name="tradeModelStoreContainer">
+    <EntitySet Name="exchanges" EntityType="tradeModel.Store.exchanges" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="markets" EntityType="tradeModel.Store.markets" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="my_orders" EntityType="tradeModel.Store.my_orders" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="orders" EntityType="tradeModel.Store.orders" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="price_hist" EntityType="tradeModel.Store.price_hist" store:Type="Tables" Schema="dbo" />
+  </EntityContainer>
+  <EntityType Name="exchanges">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="name" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="key" Type="nvarchar" Nullable="true" MaxLength="500" />
+  </EntityType>
+  <EntityType Name="markets">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="exchange_id" Type="int" Nullable="true" />
+    <Property Name="currency" Type="nvarchar" Nullable="true" MaxLength="20" />
+    <Property Name="currency_long" Type="nvarchar" Nullable="true" MaxLength="50" />
+    <Property Name="base_currency" Type="nvarchar" Nullable="true" MaxLength="20" />
+    <Property Name="min_trade_size" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="market_name" Type="nvarchar" Nullable="true" MaxLength="20" />
+    <Property Name="is_active" Type="bit" Nullable="true" />
+    <Property Name="created_at" Type="datetime" Nullable="true" />
+  </EntityType>
+  <EntityType Name="my_orders">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="market_id" Type="int" Nullable="true" />
+    <Property Name="order_uuid" Type="nvarchar" Nullable="true" MaxLength="50" />
+    <Property Name="order_type" Type="nvarchar" Nullable="true" MaxLength="20" />
+    <Property Name="quantity" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="quantity_remain" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="reserved" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="reserved_remaining" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="commission_reserved" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="commission_reserved_remaining" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="commission_paid" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="price" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="opened_at" Type="datetime" Nullable="true" />
+    <Property Name="closed_at" Type="datetime" Nullable="true" />
+  </EntityType>
+  <EntityType Name="orders">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="market_id" Type="int" Nullable="true" />
+    <Property Name="type" Type="bit" Nullable="true" />
+    <Property Name="quantity" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="rate" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+  </EntityType>
+  <EntityType Name="price_hist">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="market_id" Type="int" Nullable="true" />
+    <Property Name="bid" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="ask" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="last" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="avg" Type="decimal" Nullable="true" Precision="11" Scale="8" />
+    <Property Name="acc_rate" Type="int" Nullable="true" />
+    <Property Name="created_at" Type="datetime" Nullable="true" />
+  </EntityType>
+</Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="tradeModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="exchanges">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="key" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="markets">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="exchange_id" Type="Int32" />
+          <Property Name="currency" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="currency_long" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="base_currency" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="min_trade_size" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="market_name" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="is_active" Type="Boolean" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="my_orders">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="market_id" Type="Int32" />
+          <Property Name="order_uuid" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="order_type" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="quantity" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="quantity_remain" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="reserved" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="reserved_remaining" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="commission_reserved" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="commission_reserved_remaining" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="commission_paid" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="price" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="opened_at" Type="DateTime" Precision="3" />
+          <Property Name="closed_at" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="orders">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="market_id" Type="Int32" />
+          <Property Name="type" Type="Boolean" />
+          <Property Name="quantity" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="rate" Type="Decimal" Precision="11" Scale="8" />
+        </EntityType>
+        <EntityType Name="price_hist">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="market_id" Type="Int32" />
+          <Property Name="bid" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="ask" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="last" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="avg" Type="Decimal" Precision="11" Scale="8" />
+          <Property Name="acc_rate" Type="Int32" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityContainer Name="tradeEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="exchanges" EntityType="Self.exchanges" />
+          <EntitySet Name="markets" EntityType="Self.markets" />
+          <EntitySet Name="my_orders" EntityType="Self.my_orders" />
+          <EntitySet Name="orders" EntityType="Self.orders" />
+          <EntitySet Name="price_hist" EntityType="Self.price_hist" />
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+    <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="tradeModelStoreContainer" CdmEntityContainer="tradeEntities">
+    <EntitySetMapping Name="exchanges">
+      <EntityTypeMapping TypeName="IsTypeOf(tradeModel.exchanges)">
+        <MappingFragment StoreEntitySet="exchanges">
+          <ScalarProperty Name="id" ColumnName="id" />
+          <ScalarProperty Name="name" ColumnName="name" />
+          <ScalarProperty Name="key" ColumnName="key" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="markets">
+      <EntityTypeMapping TypeName="IsTypeOf(tradeModel.markets)">
+        <MappingFragment StoreEntitySet="markets">
+          <ScalarProperty Name="id" ColumnName="id" />
+          <ScalarProperty Name="exchange_id" ColumnName="exchange_id" />
+          <ScalarProperty Name="currency" ColumnName="currency" />
+          <ScalarProperty Name="currency_long" ColumnName="currency_long" />
+          <ScalarProperty Name="base_currency" ColumnName="base_currency" />
+          <ScalarProperty Name="min_trade_size" ColumnName="min_trade_size" />
+          <ScalarProperty Name="market_name" ColumnName="market_name" />
+          <ScalarProperty Name="is_active" ColumnName="is_active" />
+          <ScalarProperty Name="created_at" ColumnName="created_at" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="my_orders">
+      <EntityTypeMapping TypeName="IsTypeOf(tradeModel.my_orders)">
+        <MappingFragment StoreEntitySet="my_orders">
+          <ScalarProperty Name="id" ColumnName="id" />
+          <ScalarProperty Name="market_id" ColumnName="market_id" />
+          <ScalarProperty Name="order_uuid" ColumnName="order_uuid" />
+          <ScalarProperty Name="order_type" ColumnName="order_type" />
+          <ScalarProperty Name="quantity" ColumnName="quantity" />
+          <ScalarProperty Name="quantity_remain" ColumnName="quantity_remain" />
+          <ScalarProperty Name="reserved" ColumnName="reserved" />
+          <ScalarProperty Name="reserved_remaining" ColumnName="reserved_remaining" />
+          <ScalarProperty Name="commission_reserved" ColumnName="commission_reserved" />
+          <ScalarProperty Name="commission_reserved_remaining" ColumnName="commission_reserved_remaining" />
+          <ScalarProperty Name="commission_paid" ColumnName="commission_paid" />
+          <ScalarProperty Name="price" ColumnName="price" />
+          <ScalarProperty Name="opened_at" ColumnName="opened_at" />
+          <ScalarProperty Name="closed_at" ColumnName="closed_at" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="orders">
+      <EntityTypeMapping TypeName="IsTypeOf(tradeModel.orders)">
+        <MappingFragment StoreEntitySet="orders">
+          <ScalarProperty Name="id" ColumnName="id" />
+          <ScalarProperty Name="market_id" ColumnName="market_id" />
+          <ScalarProperty Name="type" ColumnName="type" />
+          <ScalarProperty Name="quantity" ColumnName="quantity" />
+          <ScalarProperty Name="rate" ColumnName="rate" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="price_hist">
+      <EntityTypeMapping TypeName="IsTypeOf(tradeModel.price_hist)">
+        <MappingFragment StoreEntitySet="price_hist">
+          <ScalarProperty Name="id" ColumnName="id" />
+          <ScalarProperty Name="market_id" ColumnName="market_id" />
+          <ScalarProperty Name="bid" ColumnName="bid" />
+          <ScalarProperty Name="ask" ColumnName="ask" />
+          <ScalarProperty Name="last" ColumnName="last" />
+          <ScalarProperty Name="avg" ColumnName="avg" />
+          <ScalarProperty Name="acc_rate" ColumnName="acc_rate" />
+          <ScalarProperty Name="created_at" ColumnName="created_at" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping></edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="False" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="없음" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
