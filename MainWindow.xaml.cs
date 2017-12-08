@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Newtonsoft.Json.Linq;
 
 namespace auto_trade
 {
@@ -34,15 +35,21 @@ namespace auto_trade
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getmarkets");
+            var jp = JObject.Parse(json);
 
-            using (var context = new tradeEntities())
-            {
-                var ex = context.exchanges;
-                foreach (var item in ex)
-                {
-                    listTest.Items.Add(item.name);
-                }
+            foreach (JObject item in jp["result"]) {
+                listTest.Items.Add(item["MarketCurrency"]);
+
             }
+
+            //using (var context = new tradeEntities())
+            //{
+            //    var ex = context.exchanges;
+            //    foreach (var item in ex)
+            //    {
+            //        listTest.Items.Add(item.name);
+            //    }
+            //}
         }
     }
 }
