@@ -12,12 +12,15 @@ namespace auto_trade
     using System;
     using System.Collections.Generic;
     
-    public partial class orders
+    public partial class PriceHist
     {
         public int id { get; set; }
         public Nullable<int> market_id { get; set; }
-        public Nullable<bool> type { get; set; }
-        public Nullable<decimal> quantity { get; set; }
-        public Nullable<decimal> rate { get; set; }
+        public Nullable<decimal> bid { get; set; }
+        public Nullable<decimal> ask { get; set; }
+        public Nullable<decimal> last { get; set; }
+        public Nullable<decimal> avg { get; set; }
+        public Nullable<int> acc_rate { get; set; }
+        public Nullable<System.DateTime> created_at { get; set; }
     }
 }

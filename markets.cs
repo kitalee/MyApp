@@ -12,7 +12,7 @@ namespace auto_trade
     using System;
     using System.Collections.Generic;
     
-    public partial class markets
+    public partial class Markets
     {
         public int id { get; set; }
         public Nullable<int> exchange_id { get; set; }

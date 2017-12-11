@@ -25,10 +25,10 @@ namespace auto_trade
             throw new UnintentionalCodeFirstException();
         }
     
-        public virtual DbSet<exchanges> exchanges { get; set; }
-        public virtual DbSet<markets> markets { get; set; }
-        public virtual DbSet<my_orders> my_orders { get; set; }
-        public virtual DbSet<orders> orders { get; set; }
-        public virtual DbSet<price_hist> price_hist { get; set; }
+        public virtual DbSet<Exchanges> exchanges { get; set; }
+        public virtual DbSet<Markets> markets { get; set; }
+        public virtual DbSet<MyOrders> my_orders { get; set; }
+        public virtual DbSet<Oders> orders { get; set; }
+        public virtual DbSet<PriceHist> price_hist { get; set; }
     }
 }

@@ -12,21 +12,12 @@ namespace auto_trade
     using System;
     using System.Collections.Generic;
     
-    public partial class my_orders
+    public partial class Oders
     {
         public int id { get; set; }
         public Nullable<int> market_id { get; set; }
-        public string order_uuid { get; set; }
-        public string order_type { get; set; }
+        public Nullable<bool> type { get; set; }
         public Nullable<decimal> quantity { get; set; }
-        public Nullable<decimal> quantity_remain { get; set; }
-        public Nullable<decimal> reserved { get; set; }
-        public Nullable<decimal> reserved_remaining { get; set; }
-        public Nullable<decimal> commission_reserved { get; set; }
-        public Nullable<decimal> commission_reserved_remaining { get; set; }
-        public Nullable<decimal> commission_paid { get; set; }
-        public Nullable<decimal> price { get; set; }
-        public Nullable<System.DateTime> opened_at { get; set; }
-        public Nullable<System.DateTime> closed_at { get; set; }
+        public Nullable<decimal> rate { get; set; }
     }
 }

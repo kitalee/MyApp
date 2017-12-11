@@ -57,7 +57,7 @@ CREATE TABLE [dbo].[markets] (
     [currency] nvarchar(20)  NULL,
     [currency_long] nvarchar(50)  NULL,
     [base_currency] nvarchar(20)  NULL,
-    [min_trade_size] decimal(11,8)  NULL,
+    [min_trade_size] decimal(18,8)  NULL,
     [market_name] nvarchar(20)  NULL,
     [is_active] bit  NULL,
     [created_at] datetime  NULL
@@ -70,14 +70,14 @@ CREATE TABLE [dbo].[my_orders] (
     [market_id] int  NULL,
     [order_uuid] nvarchar(50)  NULL,
     [order_type] nvarchar(20)  NULL,
-    [quantity] decimal(11,8)  NULL,
-    [quantity_remain] decimal(11,8)  NULL,
-    [reserved] decimal(11,8)  NULL,
-    [reserved_remaining] decimal(11,8)  NULL,
-    [commission_reserved] decimal(11,8)  NULL,
-    [commission_reserved_remaining] decimal(11,8)  NULL,
-    [commission_paid] decimal(11,8)  NULL,
-    [price] decimal(11,8)  NULL,
+    [quantity] decimal(18,8)  NULL,
+    [quantity_remain] decimal(18,8)  NULL,
+    [reserved] decimal(18,8)  NULL,
+    [reserved_remaining] decimal(18,8)  NULL,
+    [commission_reserved] decimal(18,8)  NULL,
+    [commission_reserved_remaining] decimal(18,8)  NULL,
+    [commission_paid] decimal(18,8)  NULL,
+    [price] decimal(18,8)  NULL,
     [opened_at] datetime  NULL,
     [closed_at] datetime  NULL
 );
@@ -88,8 +88,8 @@ CREATE TABLE [dbo].[orders] (
     [id] int IDENTITY(1,1) NOT NULL,
     [market_id] int  NULL,
     [type] bit  NULL,
-    [quantity] decimal(11,8)  NULL,
-    [rate] decimal(11,8)  NULL
+    [quantity] decimal(18,8)  NULL,
+    [rate] decimal(18,8)  NULL
 );
 GO
 
@@ -97,10 +97,10 @@ GO
 CREATE TABLE [dbo].[price_hist] (
     [id] int IDENTITY(1,1) NOT NULL,
     [market_id] int  NULL,
-    [bid] decimal(11,8)  NULL,
-    [ask] decimal(11,8)  NULL,
-    [last] decimal(11,8)  NULL,
-    [avg] decimal(11,8)  NULL,
+    [bid] decimal(18,8)  NULL,
+    [ask] decimal(18,8)  NULL,
+    [last] decimal(18,8)  NULL,
+    [avg] decimal(18,8)  NULL,
     [acc_rate] int  NULL,
     [created_at] datetime  NULL
 );

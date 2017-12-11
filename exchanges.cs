@@ -12,7 +12,7 @@ namespace auto_trade
     using System;
     using System.Collections.Generic;
     
-    public partial class exchanges
+    public partial class Exchanges
     {
         public int id { get; set; }
         public string name { get; set; }

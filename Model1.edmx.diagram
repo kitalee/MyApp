@@ -5,11 +5,11 @@
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
       <Diagram DiagramId="f58df2400b304725a4a9c2f879a90e81" Name="Diagram1">
-        <EntityTypeShape EntityType="tradeModel.exchanges" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="tradeModel.markets" Width="1.5" PointX="2.75" PointY="0.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="tradeModel.my_orders" Width="1.5" PointX="4.75" PointY="0.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="tradeModel.orders" Width="1.5" PointX="0.75" PointY="4.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="tradeModel.price_hist" Width="1.5" PointX="2.75" PointY="5.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="tradeModel.Exchanges" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="tradeModel.Markets" Width="1.5" PointX="3" PointY="0.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="tradeModel.MyOrders" Width="1.5" PointX="5.375" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="tradeModel.Oders" Width="1.5" PointX="9.25" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="tradeModel.PriceHist" Width="1.5" PointX="7.375" PointY="0.75" IsExpanded="true" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

@@ -74,7 +74,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="exchanges.cs">
+    <Compile Include="Exchanges.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="MainWindow.xaml.cs">
@@ -83,7 +83,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="markets.cs">
+    <Compile Include="Markets.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="Model1.Context.cs">
@@ -101,13 +101,13 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Model1.edmx</DependentUpon>
     </Compile>
-    <Compile Include="my_orders.cs">
+    <Compile Include="MyOrders.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
-    <Compile Include="orders.cs">
+    <Compile Include="Oders.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
-    <Compile Include="price_hist.cs">
+    <Compile Include="PriceHist.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
