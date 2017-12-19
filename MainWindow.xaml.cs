@@ -86,54 +86,55 @@ namespace auto_trade
                 listLog.Items.Clear();
                 TradeEntities db = new TradeEntities();
 
-                //if (db.Database.Exists()) {
-                //    db.Database.Delete();
-                //}
-                //db.Database.CreateIfNotExists();
+                if (db.Database.Exists())
+                {
+                    db.Database.Delete();
+                }
+                db.Database.CreateIfNotExists();
 
-                ////Database.SetInitializer(new CreateDatabaseIfNotExists<TradeEntities>());
+                //Database.SetInitializer(new CreateDatabaseIfNotExists<TradeEntities>());
 
-                //// Exchanges
-                //Exchanges ex = new Exchanges();
-                //ex.name = "bittrex";
-                //ex.key = "xxxx";
-                //db.exchanges.Add(ex);
-                //db.SaveChanges();
+                // Exchanges
+                Exchanges ex = new Exchanges();
+                ex.name = "bittrex";
+                ex.key = "xxxx";
+                db.exchanges.Add(ex);
+                db.SaveChanges();
 
-                //// Markets
-                //DebugWriteWithTime("get json - start");
-                //var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getmarkets");
-                //DebugWriteWithTime("get json - end");
-                //var jp = JObject.Parse(json);
+                // Markets
+                DebugWriteWithTime("get json - start");
+                var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getmarkets");
+                DebugWriteWithTime("get json - end");
+                var jp = JObject.Parse(json);
 
-                //if ((bool)jp["success"])
-                //{
-                //    DebugWriteWithTime("loop - start");
-                //    foreach (JObject item in jp["result"])
-                //    {
-                //        Markets et = new Markets();
-                //        et.exchange_id = 1; // bittrex
-                //        et.currency = item["MarketCurrency"].ToString();
-                //        et.currency_long = item["MarketCurrencyLong"].ToString();
-                //        et.base_currency = item["BaseCurrency"].ToString();
-                //        et.min_trade_size = (Decimal)item["MinTradeSize"];
-                //        et.market_name = item["MarketName"].ToString();
-                //        et.is_active = (bool)item["IsActive"];
-                //        et.created_at = (DateTime)item["Created"];
-                //        db.markets.Add(et);
+                if ((bool)jp["success"])
+                {
+                    DebugWriteWithTime("loop - start");
+                    foreach (JObject item in jp["result"])
+                    {
+                        Markets et = new Markets();
+                        et.exchange_id = 1; // bittrex
+                        et.currency = item["MarketCurrency"].ToString();
+                        et.currency_long = item["MarketCurrencyLong"].ToString();
+                        et.base_currency = item["BaseCurrency"].ToString();
+                        et.min_trade_size = (Decimal)item["MinTradeSize"];
+                        et.market_name = item["MarketName"].ToString();
+                        et.is_active = (bool)item["IsActive"];
+                        et.created_at = (DateTime)item["Created"];
+                        db.markets.Add(et);
 
-                //        //listTest.Items.Add(item["MarketCurrency"]);
-                //    }
-                //    DebugWriteWithTime("loop - end");
-                //    DebugWriteWithTime("db insert - start");
-                //    db.SaveChanges();
-                //    DebugWriteWithTime("db insert - end");
+                        //listTest.Items.Add(item["MarketCurrency"]);
+                    }
+                    DebugWriteWithTime("loop - end");
+                    DebugWriteWithTime("db insert - start");
+                    db.SaveChanges();
+                    DebugWriteWithTime("db insert - end");
 
-                //}
-                //else
-                //{
-                //    throw new System.Exception("Fail to get data from exchanges");
-                //}
+                }
+                else
+                {
+                    throw new System.Exception("Fail to get data from exchanges");
+                }
 
                 // Coin Tables
 
@@ -145,12 +146,10 @@ namespace auto_trade
                 con = new SqlConnection(conStr);
                 con.Open();
 
-
-
                 foreach (var item in marketNames)
                 {
-                    var aaa = item.market_name;
-                    listLog.Items.Add(aaa);
+                    var name = item.market_name;
+                    listLog.Items.Add(name);
 
                     string sql = "";
                     sql += "CREATE TABLE [dbo].[" + item.market_name + "] ( ";
@@ -161,11 +160,14 @@ namespace auto_trade
                     sql += "    [last] decimal(18,8)  NULL, ";
                     sql += "    [avg] decimal(18,8)  NULL, ";
                     sql += "    [acc_rate] int  NULL, ";
+                    sql += "    [acc_number] int  NULL, ";
                     sql += "    [created_at] datetime  NULL ";
                     sql += "); ";
                     SqlCommand cmd = new SqlCommand(sql, con);
                     cmd.ExecuteNonQuery();
                 }
+
+                listLog.Items.Add("DB Init Complete!");
 
             }
             catch (Exception ex)
@@ -174,14 +176,12 @@ namespace auto_trade
                 listLog.Items.Add(ex.Message);
             }
             finally {
-                if (con.State == System.Data.ConnectionState.Open) {
+                if (con != null && con.State == System.Data.ConnectionState.Open) {
                     con.Close();
                 }
+                
             }
             
-
-
-
 
         }
 
@@ -207,7 +207,8 @@ namespace auto_trade
 
         private void btnMonitor_Click(object sender, RoutedEventArgs e)
         {
-            
+            listLog.Items.Clear();
+            btnMonitor.IsEnabled = false;
             work.RunWorkerAsync();
 
         }
@@ -221,10 +222,12 @@ namespace auto_trade
 
         private void Work_DoWork(object sender, DoWorkEventArgs e)
         {
-            btnMonitor.IsEnabled = false;
+            //Thread.Sleep(5000);
             //throw new NotImplementedException();
-            for (int i = 1; i < 1000; i++) {
-                listLog.Items.Add(i.ToString());
+            for (int i = 1; i < 100000; i++) {
+                //listLog.Items.Add(i.ToString());
+                Action updateListLog = () => listLog.Items.Add(i.ToString());
+                listLog.Dispatcher.Invoke(updateListLog);
             }
         }
     }
