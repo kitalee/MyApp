@@ -13,10 +13,10 @@ namespace auto_trade
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
-    public partial class tradeEntities : DbContext
+    public partial class TradeEntities : DbContext
     {
-        public tradeEntities()
-            : base("name=tradeEntities")
+        public TradeEntities()
+            : base("name=MyCon")
         {
         }
     

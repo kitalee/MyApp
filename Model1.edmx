@@ -79,7 +79,7 @@
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
-      <Schema Namespace="tradeModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+      <Schema Namespace="TradeModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
         <EntityType Name="Exchanges">
           <Key>
             <PropertyRef Name="id" />
@@ -144,21 +144,21 @@
           <Property Name="acc_rate" Type="Int32" />
           <Property Name="created_at" Type="DateTime" Precision="3" />
         </EntityType>
-        <EntityContainer Name="tradeEntities" annotation:LazyLoadingEnabled="true">
-          <EntitySet Name="exchanges" EntityType="tradeModel.Exchanges" />
-          <EntitySet Name="markets" EntityType="tradeModel.Markets" />
-          <EntitySet Name="my_orders" EntityType="tradeModel.MyOrders" />
-          <EntitySet Name="orders" EntityType="tradeModel.Oders" />
-          <EntitySet Name="price_hist" EntityType="tradeModel.PriceHist" />
+        <EntityContainer Name="TradeEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="exchanges" EntityType="TradeModel.Exchanges" />
+          <EntitySet Name="markets" EntityType="TradeModel.Markets" />
+          <EntitySet Name="my_orders" EntityType="TradeModel.MyOrders" />
+          <EntitySet Name="orders" EntityType="TradeModel.Oders" />
+          <EntitySet Name="price_hist" EntityType="TradeModel.PriceHist" />
         </EntityContainer>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
     <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
-  <EntityContainerMapping StorageEntityContainer="tradeModelStoreContainer" CdmEntityContainer="tradeEntities">
+  <EntityContainerMapping StorageEntityContainer="tradeModelStoreContainer" CdmEntityContainer="TradeEntities">
     <EntitySetMapping Name="exchanges">
-      <EntityTypeMapping TypeName="IsTypeOf(tradeModel.Exchanges)">
+      <EntityTypeMapping TypeName="IsTypeOf(TradeModel.Exchanges)">
         <MappingFragment StoreEntitySet="exchanges">
           <ScalarProperty Name="id" ColumnName="id" />
           <ScalarProperty Name="name" ColumnName="name" />
@@ -167,7 +167,7 @@
       </EntityTypeMapping>
     </EntitySetMapping>
     <EntitySetMapping Name="markets">
-      <EntityTypeMapping TypeName="IsTypeOf(tradeModel.Markets)">
+      <EntityTypeMapping TypeName="IsTypeOf(TradeModel.Markets)">
         <MappingFragment StoreEntitySet="markets">
           <ScalarProperty Name="id" ColumnName="id" />
           <ScalarProperty Name="exchange_id" ColumnName="exchange_id" />
@@ -182,7 +182,7 @@
       </EntityTypeMapping>
     </EntitySetMapping>
     <EntitySetMapping Name="my_orders">
-      <EntityTypeMapping TypeName="IsTypeOf(tradeModel.MyOrders)">
+      <EntityTypeMapping TypeName="IsTypeOf(TradeModel.MyOrders)">
         <MappingFragment StoreEntitySet="my_orders">
           <ScalarProperty Name="id" ColumnName="id" />
           <ScalarProperty Name="market_id" ColumnName="market_id" />
@@ -202,7 +202,7 @@
       </EntityTypeMapping>
     </EntitySetMapping>
     <EntitySetMapping Name="orders">
-      <EntityTypeMapping TypeName="IsTypeOf(tradeModel.Oders)">
+      <EntityTypeMapping TypeName="IsTypeOf(TradeModel.Oders)">
         <MappingFragment StoreEntitySet="orders">
           <ScalarProperty Name="id" ColumnName="id" />
           <ScalarProperty Name="market_id" ColumnName="market_id" />
@@ -213,7 +213,7 @@
       </EntityTypeMapping>
     </EntitySetMapping>
     <EntitySetMapping Name="price_hist">
-      <EntityTypeMapping TypeName="IsTypeOf(tradeModel.PriceHist)">
+      <EntityTypeMapping TypeName="IsTypeOf(TradeModel.PriceHist)">
         <MappingFragment StoreEntitySet="price_hist">
           <ScalarProperty Name="id" ColumnName="id" />
           <ScalarProperty Name="market_id" ColumnName="market_id" />
