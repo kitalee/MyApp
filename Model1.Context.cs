@@ -16,7 +16,7 @@ namespace auto_trade
     public partial class TradeEntities : DbContext
     {
         public TradeEntities()
-            : base("name=MyCon")
+            : base("name=TradeEntities")
         {
         }
     

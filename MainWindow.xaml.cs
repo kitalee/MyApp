@@ -21,6 +21,7 @@ using System.Data.SqlClient;
 using System.Threading;
 using System.Windows.Threading;
 using System.ComponentModel;
+using System.Data;
 
 
 namespace auto_trade
@@ -31,17 +32,19 @@ namespace auto_trade
     public partial class MainWindow : Window
     {
 
-        private BackgroundWorker work = new BackgroundWorker();
-        
+        private BackgroundWorker wMonitor = new BackgroundWorker();
+        private static bool isMonitor = false;
+        private static DataTable dtMarkets;
+
 
         public MainWindow()
         {
             InitializeComponent();
 
-            work.DoWork += Work_DoWork;
-            work.RunWorkerCompleted += Work_RunWorkerCompleted;
-            work.WorkerReportsProgress = true;
-            work.WorkerSupportsCancellation = true;
+            wMonitor.DoWork += WorkMonitor_DoWork;
+            wMonitor.RunWorkerCompleted += WorkMonitor_RunWorkerCompleted;
+            wMonitor.WorkerReportsProgress = true;
+            wMonitor.WorkerSupportsCancellation = true;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -49,9 +52,24 @@ namespace auto_trade
             var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getmarkets");
         }
 
-        public void DebugWriteWithTime(string msg) {
+        private string GetTime() {
             DateTime now = DateTime.Now;
-            Debug.WriteLine("[" + String.Format("{0:yyyy-MM-dd h:mm:ss.FFF}", now) +"] " + msg);
+            return "[" + String.Format("{0:yyyy-MM-dd h:mm:ss.FFF}", now) + "] ";
+        }
+
+        private void Logging(string msg) {
+            DateTime now = DateTime.Now;
+            //Debug.WriteLine(GetTime() + msg);
+
+            if (listLog.Dispatcher.CheckAccess())
+            {
+                listLog.Items.Insert(0, GetTime() + msg);
+            }
+            else {
+                Action updateListLog = () => listLog.Items.Insert(0, GetTime() + msg);
+                listLog.Dispatcher.Invoke(updateListLog);
+            }
+            
         }
 
         private void btnInit_Click(object sender, RoutedEventArgs e)
@@ -102,14 +120,14 @@ namespace auto_trade
                 db.SaveChanges();
 
                 // Markets
-                DebugWriteWithTime("get json - start");
+                Logging("get json - start");
                 var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getmarkets");
-                DebugWriteWithTime("get json - end");
+                Logging("get json - end");
                 var jp = JObject.Parse(json);
 
                 if ((bool)jp["success"])
                 {
-                    DebugWriteWithTime("loop - start");
+                    Logging("loop - start");
                     foreach (JObject item in jp["result"])
                     {
                         Markets et = new Markets();
@@ -125,10 +143,10 @@ namespace auto_trade
 
                         //listTest.Items.Add(item["MarketCurrency"]);
                     }
-                    DebugWriteWithTime("loop - end");
-                    DebugWriteWithTime("db insert - start");
+                    Logging("loop - end");
+                    Logging("db insert - start");
                     db.SaveChanges();
-                    DebugWriteWithTime("db insert - end");
+                    Logging("db insert - end");
 
                 }
                 else
@@ -187,47 +205,206 @@ namespace auto_trade
 
         private void btnTest_Click(object sender, RoutedEventArgs e)
         {
-            listLog.Items.Clear();
-            listLog.Items.Add(string.Format("{0}{1}", DateTime.Now, Environment.NewLine));
-            listLog.Items.Add(string.Format("Button Clicked then disabled{0}", Environment.NewLine));
-            this.btnTest.IsEnabled = false; //#1
+            try
+            {
+                Logging("getting data - start");
+                var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getticker?market=BTC-ETH");
+                var jp = JObject.Parse(json);
+                Logging("getting data - end");
+                if ((bool)jp["success"])
+                {
 
-            this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(()=> {
-                System.Threading.Thread.Sleep(2000); //#2
-                this.btnTest.IsEnabled = true; //#3
-                listLog.Items.Add(string.Format("Button pressed then enabled{0}{0}", Environment.NewLine));
-            }));
+                    Logging(jp["result"]["Bid"].ToString());
+                    Logging(jp["result"]["Ask"].ToString());
+                    Logging(jp["result"]["Last"].ToString());
+                    //foreach (JProperty item in jp["result"])
+                    //{
+                    //    listLog.Items.Add("Bid : " + item["Bid"]);
+                    //    listLog.Items.Add("Bid : " + item["Ask"]);
+                    //    listLog.Items.Add("Bid : " + item["Last"]);
+                    //}
 
 
-            //System.Threading.Thread.Sleep(2000); //#2
+                }
 
-            //this.btnTest.IsEnabled = true; //#3
-            //listLog.Items.Add(string.Format("Button pressed then enabled{0}{0}", Environment.NewLine));
+
+                //listLog.Items.Clear();
+                //listLog.Items.Add(string.Format("{0}{1}", DateTime.Now, Environment.NewLine));
+                //listLog.Items.Add(string.Format("Button Clicked then disabled{0}", Environment.NewLine));
+                //this.btnTest.IsEnabled = false; //#1
+
+                //this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(()=> {
+                //    System.Threading.Thread.Sleep(2000); //#2
+                //    this.btnTest.IsEnabled = true; //#3
+                //    listLog.Items.Add(string.Format("Button pressed then enabled{0}{0}", Environment.NewLine));
+                //}));
+            }
+            catch (Exception ex)
+            {
+
+                Logging(ex.Message);
+            }
+            
+
         }
 
         private void btnMonitor_Click(object sender, RoutedEventArgs e)
         {
-            listLog.Items.Clear();
-            btnMonitor.IsEnabled = false;
-            work.RunWorkerAsync();
+            SqlConnection con = null;
+            try
+            {
+                if ((string)btnMonitor.Content == "Start Monitor")
+                {
+                    listLog.Items.Clear();
+                    btnMonitor.Content = "Stop Monitor";
+                    isMonitor = true;
+                    Logging("===================== Monitoring Start =====================");
+
+                    //dtMarkets
+                    //select market_name from markets where is_active = 1 and market_name like 'BTC-%'
+                    string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["MyCon2"].ConnectionString;
+                    con = new SqlConnection(conStr);
+                    con.Open();
+                    string sql = "select market_name from markets where is_active = 1 and market_name like 'BTC-%'";
+                    SqlCommand cmd = new SqlCommand(sql, con);
+                    dtMarkets = new DataTable();
+                    dtMarkets.Load(cmd.ExecuteReader());
+
+                    //foreach (DataRow dr in dtMarkets.Rows) {
+                    //    Logging(dr["market_name"].ToString());
+                    //}
+
+                    wMonitor.RunWorkerAsync(dtMarkets);
+                }
+                else
+                {
+                    btnMonitor.Content = "Start Monitor";
+                    isMonitor = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging(ex.Message);
+            }
+            finally
+            {
+                if (con != null && con.State == System.Data.ConnectionState.Open)
+                {
+                    con.Close();
+                }
+            }
+
+
 
         }
 
-        private void Work_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void WorkMonitor_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             //throw new NotImplementedException();
-            listLog.Items.Add("complete!");
-            btnMonitor.IsEnabled = true;
+            if (isMonitor) {
+                wMonitor.RunWorkerAsync(dtMarkets);
+            }
+            else
+            {
+                Logging("===================== Monitoring End =====================");
+            }
         }
 
-        private void Work_DoWork(object sender, DoWorkEventArgs e)
+        private void WorkMonitor_DoWork(object sender, DoWorkEventArgs e)
         {
-            //Thread.Sleep(5000);
-            //throw new NotImplementedException();
-            for (int i = 1; i < 100000; i++) {
-                //listLog.Items.Add(i.ToString());
-                Action updateListLog = () => listLog.Items.Add(i.ToString());
-                listLog.Dispatcher.Invoke(updateListLog);
+            SqlConnection con = null;
+            try
+            {
+                DataTable markets = (DataTable)e.Argument;
+                string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["MyCon2"].ConnectionString;
+                con = new SqlConnection(conStr);
+                con.Open();
+
+                Logging("getting - START");
+                var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getticker?market=BTC-ETH");
+                var jp = JObject.Parse(json);
+                Logging("getting - END");
+                if ((bool)jp["success"])
+                {
+                    Logging(jp["result"]["Bid"].ToString());
+                    Logging(jp["result"]["Ask"].ToString());
+                    Logging(jp["result"]["Last"].ToString());
+                    //foreach (JProperty item in jp["result"])
+                    //{
+                    //    listLog.Items.Add("Bid : " + item["Bid"]);
+                    //    listLog.Items.Add("Bid : " + item["Ask"]);
+                    //    listLog.Items.Add("Bid : " + item["Last"]);
+                    //}
+
+
+                    string sql = "";
+                    sql += "insert into [dbo].[BTC-ETH] (market_id, bid, ask, last, created_at) ";
+                    sql += "values (1, " + jp["result"]["Bid"].ToString() + ", " + jp["result"]["Ask"].ToString() + ", " + jp["result"]["Last"].ToString() + ", getdate()) ";
+                    SqlCommand cmd = new SqlCommand(sql, con);
+                    cmd.ExecuteNonQuery();
+                }
+                else
+                {
+                    Logging("FAIL!");
+                }
+
+                //foreach (DataRow dr in markets.Rows)
+                //{
+                //    string name = dr["market_name"].ToString();
+
+                //    Logging("getting "+ name + " - START");
+                //    var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getticker?market=" + name);
+                //    var jp = JObject.Parse(json);
+                //    Logging("getting " + name + " - END");
+                //    if ((bool)jp["success"])
+                //    {
+                //        if (!jp["result"].HasValues)
+                //            continue;
+
+                //        Logging(jp["result"]["Bid"].ToString());
+                //        Logging(jp["result"]["Ask"].ToString());
+                //        Logging(jp["result"]["Last"].ToString());
+                //        //foreach (JProperty item in jp["result"])
+                //        //{
+                //        //    listLog.Items.Add("Bid : " + item["Bid"]);
+                //        //    listLog.Items.Add("Bid : " + item["Ask"]);
+                //        //    listLog.Items.Add("Bid : " + item["Last"]);
+                //        //}
+
+
+                //        string sql = "";
+                //        sql += "insert into [dbo].["+ name + "] (market_id, bid, ask, last, created_at) ";
+                //        sql += "values (1, "+ jp["result"]["Bid"].ToString() + ", "+ jp["result"]["Ask"].ToString() + ", "+ jp["result"]["Last"].ToString() + ", getdate()) ";
+                //        SqlCommand cmd = new SqlCommand(sql, con);
+                //        cmd.ExecuteNonQuery();
+                //    }
+                //    else {
+                //        Logging("FAIL : " + name);
+                //    }
+
+
+                //}
+
+
+                //for (int i = 1; i < 100; i++)
+                //{
+                //    Logging(i.ToString());
+                //}
+
+                //Thread.Sleep(5000);
+                //throw new NotImplementedException();
+
+            }
+            catch (Exception ex)
+            {
+                Logging(ex.Message);
+            }
+            finally
+            {
+                if (con != null && con.State == System.Data.ConnectionState.Open)
+                {
+                    con.Close();
+                }
             }
         }
     }

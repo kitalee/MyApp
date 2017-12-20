@@ -10,8 +10,8 @@
         <Button Content="Sync Market" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Height="21" Click="Button_Click" Width="102"/>
         <Button x:Name="btnInit" Content="Init DB" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,10,0,0" Click="btnInit_Click"/>
         <ListView x:Name="listLog" VerticalContentAlignment="Stretch" UseLayoutRounding="False" ScrollViewer.CanContentScroll="True" Background="#FFDEDEDE" HorizontalContentAlignment="Stretch" Margin="10,0,10,10" VerticalAlignment="Bottom" Height="170.063"></ListView>
-        <Button x:Name="btnTest" Content="Test" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,53,0,0" Click="btnTest_Click"/>
-        <Button x:Name="btnMonitor" Content="Start Monitor" HorizontalAlignment="Left" VerticalAlignment="Top" Width="98" Margin="10,98,0,0" Click="btnMonitor_Click"/>
+        <Button x:Name="btnTest" Content="Test" HorizontalAlignment="Right" VerticalAlignment="Top" Width="75" Margin="0,36,37,0" Click="btnTest_Click"/>
+        <Button x:Name="btnMonitor" Content="Start Monitor" HorizontalAlignment="Left" VerticalAlignment="Top" Width="98" Margin="99,11,0,0" Click="btnMonitor_Click"/>
 
     </Grid>
 </Window>
