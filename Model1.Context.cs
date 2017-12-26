@@ -16,13 +16,16 @@ namespace auto_trade
     public partial class TradeEntities : DbContext
     {
         public TradeEntities()
-            : base("name=TradeEntities")
+            : base("name=MyCon")
         {
         }
     
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            throw new UnintentionalCodeFirstException();
+            //modelBuilder.Entity<Markets>()
+            //    .HasIndex("ID_MARKET_NAME", e => e.Property(x => x.market_name));
+
+            //throw new UnintentionalCodeFirstException();
         }
     
         public virtual DbSet<Exchanges> exchanges { get; set; }

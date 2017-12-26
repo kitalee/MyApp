@@ -98,7 +98,7 @@
           <Property Name="currency_long" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="base_currency" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
           <Property Name="min_trade_size" Type="Decimal" Precision="18" Scale="8" />
-          <Property Name="market_name" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="market_name" Type="String" MaxLength="20" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="is_active" Type="Boolean" />
           <Property Name="created_at" Type="DateTime" Precision="3" />
         </EntityType>

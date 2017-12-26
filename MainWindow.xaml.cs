@@ -31,20 +31,49 @@ namespace auto_trade
     /// </summary>
     public partial class MainWindow : Window
     {
-
+        private BackgroundWorker wInitDB = new BackgroundWorker();
         private BackgroundWorker wMonitor = new BackgroundWorker();
         private static bool isMonitor = false;
         private static DataTable dtMarkets;
-
+        private Dictionary<string, decimal> dic = new Dictionary<string, decimal>();
 
         public MainWindow()
         {
             InitializeComponent();
 
-            wMonitor.DoWork += WorkMonitor_DoWork;
-            wMonitor.RunWorkerCompleted += WorkMonitor_RunWorkerCompleted;
+            // initdb
+            wInitDB.DoWork += WInitDB_DoWork;
+            wInitDB.RunWorkerCompleted += WInitDB_RunWorkerCompleted;
+            wInitDB.ProgressChanged += WInitDB_ProgressChanged;
+            wInitDB.WorkerReportsProgress = true;
+
+            // monitor
+            wMonitor.DoWork += wMonitor_DoWork;
+            wMonitor.RunWorkerCompleted += wMonitor_RunWorkerCompleted;
+            wMonitor.ProgressChanged += WMonitor_ProgressChanged;
             wMonitor.WorkerReportsProgress = true;
             wMonitor.WorkerSupportsCancellation = true;
+        }
+
+        private void WInitDB_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            progress.Value = e.ProgressPercentage;
+        }
+
+        private void WMonitor_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            progress.Value = e.ProgressPercentage;
+        }
+
+        private void WInitDB_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            btnInit.IsEnabled = true;
+            //throw new NotImplementedException();
+        }
+
+        private void WInitDB_DoWork(object sender, DoWorkEventArgs e)
+        {
+            initDB();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -74,8 +103,11 @@ namespace auto_trade
 
         private void btnInit_Click(object sender, RoutedEventArgs e)
         {
+            //initDB();
 
-            initDB();
+            btnInit.IsEnabled = false;
+            wInitDB.RunWorkerAsync();
+
 
 
 
@@ -101,7 +133,9 @@ namespace auto_trade
             SqlConnection con = null;
             try
             {
-                listLog.Items.Clear();
+                Logging("DB Init Start!");
+                wInitDB.ReportProgress(0);
+                //listLog.Items.Clear();
                 TradeEntities db = new TradeEntities();
 
                 if (db.Database.Exists())
@@ -124,6 +158,8 @@ namespace auto_trade
                 var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getmarkets");
                 Logging("get json - end");
                 var jp = JObject.Parse(json);
+
+                wInitDB.ReportProgress(10);
 
                 if ((bool)jp["success"])
                 {
@@ -154,6 +190,8 @@ namespace auto_trade
                     throw new System.Exception("Fail to get data from exchanges");
                 }
 
+                wInitDB.ReportProgress(70);
+
                 // Coin Tables
 
                 var marketNames = from m in db.markets
@@ -164,10 +202,15 @@ namespace auto_trade
                 con = new SqlConnection(conStr);
                 con.Open();
 
+                // Create Index
+                // markets
+                SqlCommand cmd = new SqlCommand("create nonclustered index IDX_MARKET on markets(market_name)", con);
+                cmd.ExecuteNonQuery();
+
                 foreach (var item in marketNames)
                 {
                     var name = item.market_name;
-                    listLog.Items.Add(name);
+                    Logging("making table : " + name);
 
                     string sql = "";
                     sql += "CREATE TABLE [dbo].[" + item.market_name + "] ( ";
@@ -181,17 +224,20 @@ namespace auto_trade
                     sql += "    [acc_number] int  NULL, ";
                     sql += "    [created_at] datetime  NULL ";
                     sql += "); ";
-                    SqlCommand cmd = new SqlCommand(sql, con);
+                    cmd = new SqlCommand(sql, con);
+                    cmd.ExecuteNonQuery();
+                    // INDEX
+                    cmd = new SqlCommand("create nonclustered index IDX_"+ item.market_name.Replace("-", "_") + " on ["+ item.market_name + "](created_at)", con);
                     cmd.ExecuteNonQuery();
                 }
 
-                listLog.Items.Add("DB Init Complete!");
-
+                Logging("DB Init Complete!");
+                wInitDB.ReportProgress(100);
             }
             catch (Exception ex)
             {
 
-                listLog.Items.Add(ex.Message);
+                Logging(ex.Message);
             }
             finally {
                 if (con != null && con.State == System.Data.ConnectionState.Open) {
@@ -265,7 +311,8 @@ namespace auto_trade
                     string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["MyCon2"].ConnectionString;
                     con = new SqlConnection(conStr);
                     con.Open();
-                    string sql = "select market_name from markets where is_active = 1 and market_name like 'BTC-%'";
+                    string sql = "select market_name from markets where id between 1 and 3";
+                    //string sql = "select market_name from markets where is_active = 1 and market_name like 'BTC-%'";
                     SqlCommand cmd = new SqlCommand(sql, con);
                     dtMarkets = new DataTable();
                     dtMarkets.Load(cmd.ExecuteReader());
@@ -298,7 +345,7 @@ namespace auto_trade
 
         }
 
-        private void WorkMonitor_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void wMonitor_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             //throw new NotImplementedException();
             if (isMonitor) {
@@ -310,7 +357,7 @@ namespace auto_trade
             }
         }
 
-        private void WorkMonitor_DoWork(object sender, DoWorkEventArgs e)
+        private void wMonitor_DoWork(object sender, DoWorkEventArgs e)
         {
             SqlConnection con = null;
             try
@@ -326,6 +373,15 @@ namespace auto_trade
                 Logging("getting - END");
                 if ((bool)jp["success"])
                 {
+
+                    if (dic.ContainsKey("BTC-ETH-LAST"))
+                    {
+
+                    }
+                    else {
+
+                    }
+
                     Logging(jp["result"]["Bid"].ToString());
                     Logging(jp["result"]["Ask"].ToString());
                     Logging(jp["result"]["Last"].ToString());
@@ -342,17 +398,24 @@ namespace auto_trade
                     sql += "values (1, " + jp["result"]["Bid"].ToString() + ", " + jp["result"]["Ask"].ToString() + ", " + jp["result"]["Last"].ToString() + ", getdate()) ";
                     SqlCommand cmd = new SqlCommand(sql, con);
                     cmd.ExecuteNonQuery();
+
+                    Thread.Sleep(500);
                 }
                 else
                 {
                     Logging("FAIL!");
                 }
 
+
+
+
+
+
                 //foreach (DataRow dr in markets.Rows)
                 //{
                 //    string name = dr["market_name"].ToString();
 
-                //    Logging("getting "+ name + " - START");
+                //    Logging("getting " + name + " - START");
                 //    var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getticker?market=" + name);
                 //    var jp = JObject.Parse(json);
                 //    Logging("getting " + name + " - END");
@@ -371,18 +434,16 @@ namespace auto_trade
                 //        //    listLog.Items.Add("Bid : " + item["Last"]);
                 //        //}
 
-
                 //        string sql = "";
-                //        sql += "insert into [dbo].["+ name + "] (market_id, bid, ask, last, created_at) ";
-                //        sql += "values (1, "+ jp["result"]["Bid"].ToString() + ", "+ jp["result"]["Ask"].ToString() + ", "+ jp["result"]["Last"].ToString() + ", getdate()) ";
+                //        sql += "insert into [dbo].[" + name + "] (market_id, bid, ask, last, created_at) ";
+                //        sql += "values (1, " + jp["result"]["Bid"].ToString() + ", " + jp["result"]["Ask"].ToString() + ", " + jp["result"]["Last"].ToString() + ", getdate()) ";
                 //        SqlCommand cmd = new SqlCommand(sql, con);
                 //        cmd.ExecuteNonQuery();
                 //    }
-                //    else {
+                //    else
+                //    {
                 //        Logging("FAIL : " + name);
                 //    }
-
-
                 //}
 
 
