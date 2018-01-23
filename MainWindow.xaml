@@ -17,6 +17,7 @@
         <Button x:Name="btnTest" Content="Test" HorizontalAlignment="Right" VerticalAlignment="Top" Width="75" Margin="0,36,37,0" Click="btnTest_Click" Grid.Column="1"/>
         <Button x:Name="btnMonitor" Content="Start Monitor" HorizontalAlignment="Left" VerticalAlignment="Top" Width="98" Margin="99,11,0,0" Click="btnMonitor_Click"/>
         <ProgressBar x:Name="progress" Height="10" VerticalAlignment="Bottom" Margin="10,0,10,10" Grid.ColumnSpan="2"/>
+        <CheckBox x:Name="chkDebug" Content="Debug" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="219,16,0,0"/>
 
     </Grid>
 </Window>

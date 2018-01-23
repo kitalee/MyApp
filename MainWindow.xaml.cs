@@ -43,8 +43,8 @@ namespace auto_trade
         {
             InitializeComponent();
 
-            Process[] allProc = Process.GetProcesses();
-            Logging(allProc.Length.ToString());
+            //Process[] allProc = Process.GetProcesses();
+            //Logging(allProc.Length.ToString());
 
 
             // initdb
@@ -96,14 +96,36 @@ namespace auto_trade
             DateTime now = DateTime.Now;
             //Debug.WriteLine(GetTime() + msg);
 
-            if (listLog.Dispatcher.CheckAccess())
+            //chkDebug.Dispatcher.
+
+            bool? isDebugMode = chkDebug.Dispatcher.Invoke(new Func<bool?>(
+                            () => chkDebug.IsChecked));
+            if ((bool)isDebugMode)
             {
-                listLog.Items.Insert(0, GetTime() + msg);
+                if (listLog.Dispatcher.CheckAccess())
+                {
+                    listLog.Items.Insert(0, GetTime() + msg);
+                }
+                else
+                {
+                    Action updateListLog = () => listLog.Items.Insert(0, GetTime() + msg);
+                    listLog.Dispatcher.Invoke(updateListLog);
+                }
             }
-            else {
-                Action updateListLog = () => listLog.Items.Insert(0, GetTime() + msg);
-                listLog.Dispatcher.Invoke(updateListLog);
-            }
+            
+
+            //if ((bool)chkDebug.IsChecked) {
+            //    if (listLog.Dispatcher.CheckAccess())
+            //    {
+            //        listLog.Items.Insert(0, GetTime() + msg);
+            //    }
+            //    else
+            //    {
+            //        Action updateListLog = () => listLog.Items.Insert(0, GetTime() + msg);
+            //        listLog.Dispatcher.Invoke(updateListLog);
+            //    }
+            //}
+            
             
         }
 
@@ -314,7 +336,8 @@ namespace auto_trade
 
                     //dtMarkets
                     //select market_name from markets where is_active = 1 and market_name like 'BTC-%'
-                    string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["MyCon2"].ConnectionString;
+                    //string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["MyCon2"].ConnectionString;
+
                     con = new SqlConnection(conStr);
                     con.Open();
                     //string sql = "select market_name from markets where market_name = 'BTC-UNB' or market_name = 'BTC-SWT'";
@@ -324,11 +347,25 @@ namespace auto_trade
                     dtMarkets = new DataTable();
                     dtMarkets.Load(cmd.ExecuteReader());
 
-                    //foreach (DataRow dr in dtMarkets.Rows) {
-                    //    Logging(dr["market_name"].ToString());
-                    //}
+                    var totalRows = dtMarkets.Rows.Count;
+                    //var halfway = totalRows / 2;
+                    //DataTable firstHalf = dtMarkets.AsEnumerable().Take(halfway).CopyToDataTable();
+                    //DataTable secondHalf = dtMarkets.AsEnumerable().Skip(halfway).Take(totalRows - halfway).CopyToDataTable();
 
-                    wMonitor.RunWorkerAsync(dtMarkets);
+                    int divFactor = 2;
+                    int count = dtMarkets.Rows.Count % divFactor > 0 ? dtMarkets.Rows.Count / divFactor + 1 : dtMarkets.Rows.Count / divFactor;
+
+                    DataSet ds = new DataSet();
+                    for (int i = 0; i < count; i++) {
+                        
+                        DataTable dt = dtMarkets.AsEnumerable().Skip(divFactor * i).Take(divFactor).CopyToDataTable();
+                        ds.Tables.Add(dt);
+                    }
+
+                    //var a = 1;
+
+                    wMonitor.RunWorkerAsync(ds);
+
                 }
                 else
                 {
@@ -360,11 +397,11 @@ namespace auto_trade
             BackgroundWorker worker = sender as BackgroundWorker;
             //throw new NotImplementedException();
             if (isMonitor) {
-                worker.RunWorkerAsync(dtMarkets);
+                //worker.RunWorkerAsync(dtMarkets);
             }
             else
             {
-                Logging("===================== Monitoring End =====================");
+                Logging("=====================!!! Monitoring End !!!=====================");
             }
         }
 
@@ -375,50 +412,61 @@ namespace auto_trade
             Thread.Sleep(delayTime);
 
             //Logging(arr[0] + " Start");
-            //SqlConnection con = null;
+            SqlConnection con = null;
             try
             {
-                if (conTh == null || conTh.State != System.Data.ConnectionState.Open)
-                {
-                    conTh = new SqlConnection(conStr);
-                    conTh.Open();
+                //if (conTh == null || conTh.State != System.Data.ConnectionState.Open)
+                //{
+                //    conTh = new SqlConnection(conStr);
+                //    conTh.Open();
+                //}
+
+                using (con = new SqlConnection(conStr)) {
+                    con.Open();
+
+                    Logging("getting from "+ arr[0] + " - START");
+                    var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getticker?market=" + arr[1]);
+                    Logging("getting from " + arr[0] + " - END");
+                    DateTime now = DateTime.Now;
+                    var jp = JObject.Parse(json);
+                    
+                    if ((bool)jp["success"])
+                    {
+                        string sql = "";
+                        sql += "insert into [dbo].[" + arr[1] + "] (market_id, bid, ask, last, created_at) ";
+                        sql += "values (1, " + jp["result"]["Bid"].ToString() + ", " + jp["result"]["Ask"].ToString() + ", ";
+                        sql += jp["result"]["Last"].ToString() + ", '"+ now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "') ";
+                        SqlCommand cmd = new SqlCommand(sql, con);
+                        cmd.ExecuteNonQuery();
+
+                        //Logging(arr[0] + " : BID - " + jp["result"]["Bid"].ToString());
+                        //Logging(arr[0] + " : ASK - " + jp["result"]["Ask"].ToString());
+                        Logging(arr[0] + " : LAST - " + jp["result"]["Last"].ToString());
+
+                        //Thread.Sleep(1000);
+                    }
+                    else
+                    {
+                        Logging(arr[0] + " : " + "FAIL!");
+                    }
+
                 }
 
-                //Logging("getting from "+ arr[0] + " - START");
-                var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getticker?market=" + arr[1]);
-                var jp = JObject.Parse(json);
-                //Logging("getting from " + arr[0] + " - END");
-                if ((bool)jp["success"])
-                {
-                    string sql = "";
-                    sql += "insert into [dbo].[" + arr[1] + "] (market_id, bid, ask, last, created_at) ";
-                    sql += "values (1, " + jp["result"]["Bid"].ToString() + ", " + jp["result"]["Ask"].ToString() + ", " + jp["result"]["Last"].ToString() + ", getdate()) ";
-                    SqlCommand cmd = new SqlCommand(sql, conTh);
-                    cmd.ExecuteNonQuery();
-
-                    Logging(arr[0] + " : BID - " + jp["result"]["Bid"].ToString());
-                    Logging(arr[0] + " : ASK - " + jp["result"]["Ask"].ToString());
-                    Logging(arr[0] + " : LAST - " + jp["result"]["Last"].ToString());
-
-                    //Thread.Sleep(1000);
-                }
-                else
-                {
-                    Logging(arr[0] + " : " + "FAIL!");
-                }
+               
 
             }
             catch (Exception ex)
             {
-                Logging(ex.Message);
+                Logging("DB Error : "+ex.Message);
             }
             finally
             {
                 e.Result = arr;
-                //if (con != null && con.State == System.Data.ConnectionState.Open)
-                //{
-                //    con.Close();
-                //}
+                if (con != null || con.State == System.Data.ConnectionState.Open)
+                {
+                    con.Close();
+                    con.Dispose();
+                }
             }
         }
 
@@ -427,14 +475,23 @@ namespace auto_trade
             string[] arr = (string[])e.Result;
             if (e.Error != null)
             {
-                Logging(arr[0] + " : " + e.Error.ToString());
+                Logging("Thread Error : " + arr[0] + " : " + e.Error.ToString());
             }
-            else {
-                Logging(arr[0] + " END");
+            //else {
+            //    Logging(arr[0] + " END");
+            //}
+            if (isMonitor)
+            {
+                BackgroundWorker worker = sender as BackgroundWorker;
+                worker.RunWorkerAsync(arr);
+            }
+            else
+            {
+                Logging("===================== Monitoring "+ arr[0] + " End =====================");
             }
         }
 
-        private void wMonitor_DoWork(object sender, DoWorkEventArgs e)
+        private void Sub_DoWork(object sender, DoWorkEventArgs e)
         {
             DataTable markets = (DataTable)e.Argument;
 
@@ -459,14 +516,45 @@ namespace auto_trade
 
                 //Thread.Sleep(500);
 
-                BackgroundWorker bwB = new BackgroundWorker();
-                bwB.DoWork += GetMarket;
-                bwB.RunWorkerCompleted += SetMarket;
-                bwB.RunWorkerAsync(arr2);
+                //BackgroundWorker bwB = new BackgroundWorker();
+                //bwB.DoWork += GetMarket;
+                //bwB.RunWorkerCompleted += SetMarket;
+                //bwB.RunWorkerAsync(arr2);
 
                 //Thread.Sleep(500);
 
             }
+
+            //Thread.Sleep(1000);
+        }
+        private void Sub_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void Sub_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void wMonitor_DoWork(object sender, DoWorkEventArgs e)
+        {
+            DataSet ds = (DataSet)e.Argument;
+
+            foreach (DataTable dt in ds.Tables)
+            {
+                BackgroundWorker sub = new BackgroundWorker();
+                sub.DoWork += Sub_DoWork; ;
+                sub.RunWorkerCompleted += Sub_RunWorkerCompleted; ;
+                sub.ProgressChanged += Sub_ProgressChanged; ;
+                sub.WorkerReportsProgress = true;
+                sub.WorkerSupportsCancellation = true;
+                sub.RunWorkerAsync(dt);
+            }
+
+
+            
+
 
             //    string[] arr1 = new string[2];
             //arr1[0] = "TH1";
@@ -601,5 +689,7 @@ namespace auto_trade
             //        }
             //    }
         }
+
+        
     }
 }
