@@ -36,10 +36,16 @@ namespace auto_trade
         private static bool isMonitor = false;
         private static DataTable dtMarkets;
         private Dictionary<string, decimal> dic = new Dictionary<string, decimal>();
+        string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["MyCon2"].ConnectionString;
+        SqlConnection conTh = null;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            Process[] allProc = Process.GetProcesses();
+            Logging(allProc.Length.ToString());
+
 
             // initdb
             wInitDB.DoWork += WInitDB_DoWork;
@@ -198,7 +204,7 @@ namespace auto_trade
                                   where m.market_name.Contains("BTC-") && m.is_active == true
                                   select m;
 
-                string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["MyCon2"].ConnectionString;
+                //string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["MyCon2"].ConnectionString;
                 con = new SqlConnection(conStr);
                 con.Open();
 
@@ -311,8 +317,9 @@ namespace auto_trade
                     string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["MyCon2"].ConnectionString;
                     con = new SqlConnection(conStr);
                     con.Open();
-                    string sql = "select market_name from markets where id between 1 and 3";
-                    //string sql = "select market_name from markets where is_active = 1 and market_name like 'BTC-%'";
+                    //string sql = "select market_name from markets where market_name = 'BTC-UNB' or market_name = 'BTC-SWT'";
+                    //string sql = "select market_name from markets where id between 1 and 3";
+                    string sql = "select market_name from markets where is_active = 1 and market_name like 'BTC-%'";
                     SqlCommand cmd = new SqlCommand(sql, con);
                     dtMarkets = new DataTable();
                     dtMarkets.Load(cmd.ExecuteReader());
@@ -332,6 +339,9 @@ namespace auto_trade
             catch (Exception ex)
             {
                 Logging(ex.Message);
+                btnMonitor.Content = "Start Monitor";
+                isMonitor = false;
+                Logging("===================== Monitoring End =====================");
             }
             finally
             {
@@ -361,13 +371,18 @@ namespace auto_trade
         private void GetMarket(object sender, DoWorkEventArgs e) {
 
             string[] arr = (string[])e.Argument;
+            int delayTime = int.Parse(arr[2]);
+            Thread.Sleep(delayTime);
+
             //Logging(arr[0] + " Start");
-            SqlConnection con = null;
+            //SqlConnection con = null;
             try
             {
-                string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["MyCon2"].ConnectionString;
-                con = new SqlConnection(conStr);
-                con.Open();
+                if (conTh == null || conTh.State != System.Data.ConnectionState.Open)
+                {
+                    conTh = new SqlConnection(conStr);
+                    conTh.Open();
+                }
 
                 //Logging("getting from "+ arr[0] + " - START");
                 var json = new WebClient().DownloadString("https://bittrex.com/api/v1.1/public/getticker?market=" + arr[1]);
@@ -378,14 +393,14 @@ namespace auto_trade
                     string sql = "";
                     sql += "insert into [dbo].[" + arr[1] + "] (market_id, bid, ask, last, created_at) ";
                     sql += "values (1, " + jp["result"]["Bid"].ToString() + ", " + jp["result"]["Ask"].ToString() + ", " + jp["result"]["Last"].ToString() + ", getdate()) ";
-                    SqlCommand cmd = new SqlCommand(sql, con);
+                    SqlCommand cmd = new SqlCommand(sql, conTh);
                     cmd.ExecuteNonQuery();
 
                     Logging(arr[0] + " : BID - " + jp["result"]["Bid"].ToString());
                     Logging(arr[0] + " : ASK - " + jp["result"]["Ask"].ToString());
                     Logging(arr[0] + " : LAST - " + jp["result"]["Last"].ToString());
 
-                    Thread.Sleep(1000);
+                    //Thread.Sleep(1000);
                 }
                 else
                 {
@@ -400,10 +415,10 @@ namespace auto_trade
             finally
             {
                 e.Result = arr;
-                if (con != null && con.State == System.Data.ConnectionState.Open)
-                {
-                    con.Close();
-                }
+                //if (con != null && con.State == System.Data.ConnectionState.Open)
+                //{
+                //    con.Close();
+                //}
             }
         }
 
@@ -421,27 +436,59 @@ namespace auto_trade
 
         private void wMonitor_DoWork(object sender, DoWorkEventArgs e)
         {
-            string[] arr1 = new string[2];
-            arr1[0] = "TH1";
-            arr1[1] = "BTC-VTC";
+            DataTable markets = (DataTable)e.Argument;
 
-            string[] arr2 = new string[2];
-            arr2[0] = "TH2";
-            arr2[1] = "BTC-VTC";
+            foreach (DataRow dr in markets.Rows)
+            {
+                string marketName = dr["market_name"].ToString();
 
-            BackgroundWorker bwA = new BackgroundWorker();
-            bwA.DoWork += GetMarket;
-            bwA.RunWorkerCompleted += SetMarket;
-            bwA.RunWorkerAsync(arr1);
+                string[] arr1 = new string[3];
+                arr1[0] = "TH1_" + marketName;
+                arr1[1] = marketName;
+                arr1[2] = "0";
 
-            Thread.Sleep(500);
+                string[] arr2 = new string[3];
+                arr2[0] = "TH2_" + marketName;
+                arr2[1] = marketName;
+                arr2[2] = "500";
 
-            BackgroundWorker bwB = new BackgroundWorker();
-            bwB.DoWork += GetMarket;
-            bwB.RunWorkerCompleted += SetMarket;
-            bwB.RunWorkerAsync(arr2);
+                BackgroundWorker bwA = new BackgroundWorker();
+                bwA.DoWork += GetMarket;
+                bwA.RunWorkerCompleted += SetMarket;
+                bwA.RunWorkerAsync(arr1);
 
-            Thread.Sleep(500);
+                //Thread.Sleep(500);
+
+                BackgroundWorker bwB = new BackgroundWorker();
+                bwB.DoWork += GetMarket;
+                bwB.RunWorkerCompleted += SetMarket;
+                bwB.RunWorkerAsync(arr2);
+
+                //Thread.Sleep(500);
+
+            }
+
+            //    string[] arr1 = new string[2];
+            //arr1[0] = "TH1";
+            //arr1[1] = "BTC-VTC";
+
+            //string[] arr2 = new string[2];
+            //arr2[0] = "TH2";
+            //arr2[1] = "BTC-VTC";
+
+            //BackgroundWorker bwA = new BackgroundWorker();
+            //bwA.DoWork += GetMarket;
+            //bwA.RunWorkerCompleted += SetMarket;
+            //bwA.RunWorkerAsync(arr1);
+
+            //Thread.Sleep(500);
+
+            //BackgroundWorker bwB = new BackgroundWorker();
+            //bwB.DoWork += GetMarket;
+            //bwB.RunWorkerCompleted += SetMarket;
+            //bwB.RunWorkerAsync(arr2);
+
+            //Thread.Sleep(500);
 
             //SqlConnection con = null;
             //try
